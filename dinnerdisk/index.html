@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="applicable-device" content="pc,mobile">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+	<title></title>
+	<script type="text/javascript">
+		var menu = [
+			'老鸭粉丝汤',
+			'外卖',
+			'胖子面',
+			'锅品面吧',
+			'冒菜三国',
+			'立方铁',
+			'萨莉亚',
+			'小杨生煎',
+			'麻辣烫',
+			'新地',
+			'德笼馆',
+			'面特筋',
+			'好烧',
+			'食之秘',
+			'麦当劳',
+			'大娘水饺'
+		];
+	</script>
+</head>
+<body>
+	<div id="parent" style="width:100%;max-width:320px;margin:0 auto;position:relative;overflow:hidden;">
+		<img src="arrow.png" style="width:4%;display:block;position:absolute;bottom:0;left:48%;display:none;" id="arrow" />
+	</div>
+	<div style="width:100%;max-width:320px;margin:20px auto 0;text-align:center;display:none;" id="control">
+		<input type="button" value="转" style="font-size:24px;" onclick="rotationDisk()" />
+		<input type="button" value="停" style="font-size:24px;" onclick="stopRotation()">
+	</div>
+	<div style="width:100%;max-width:320px;margin:20px auto 0;">
+		<form name="form">
+			<div style="width:100%;">
+				<script type="text/javascript">
+					var input = [];
+					for (var i = 0; i < menu.length; i++) {
+						input.push('<label style="margin:1% 2% 1% 0;white-space:nowrap;float:left;"><input type="checkbox" name="menu" value="' + menu[i] + '" />' + menu[i] + '</label>');
+					}
+					document.write(input.join(''));
+				</script>
+				<div style="clear:both;"></div>
+			</div>
+			<div style="width:100%;text-align:center;margin-top:3%;">
+				<input type="button" value="生成转盘" onclick="createDisk()" style="font-size:24px;" />
+			</div>
+		</form>
+	</div>
+	<script type="text/javascript">
+		(function() {
+		    var lastTime = 0;
+		    var vendors = ['ms', 'moz', 'webkit', 'o'];
+		    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+		        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+		        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+		    }
+		    if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element) {
+		        var currTime = new Date().getTime();
+		        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		        var id = window.setTimeout(function() {
+		            callback(currTime + timeToCall);
+		        }, timeToCall);
+		        lastTime = currTime + timeToCall;
+		        return id;
+		    };
+		    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function(id) {
+		        window.clearTimeout(id);
+		    };
+		}());
+
+		var canvas = document.createElement('canvas'),
+			parent = document.getElementById('parent'),
+			arrow = document.getElementById('arrow'),
+			control = document.getElementById('control');
+		canvas.width = parent.offsetWidth;
+		canvas.height = parent.offsetWidth;
+		parent.appendChild(canvas);
+
+		var context = canvas.getContext('2d'),
+			dinner = [],
+			circle = { x: canvas.width / 2, y: canvas.width / 2, radius: canvas.width / 2 },
+			startAngle = 0,
+			degreeStep = 23,
+			angleStep = degreeStep * Math.PI / 180,
+			minusTime,
+			minusTimeStep,
+			isStart = false,
+			isStoping = false;
+
+		function drawSelector() {
+			var angle = Math.PI * 2 / dinner.length;
+
+			for (var i = 0; i < dinner.length; i++) {
+				context.beginPath();
+				context.fillStyle = '#ffff00';
+				context.arc(circle.x, circle.y, circle.radius, startAngle, startAngle + angle, false);
+				context.lineTo(circle.x, circle.y);
+				context.fill();
+				drawLine(angle);
+				drawText(i, angle);
+				startAngle = (startAngle + angle) % (Math.PI * 2);
+			}
+		}
+
+		function drawLine(angle) {
+			var lineWidth = 1;
+			context.save();
+			context.beginPath();
+			context.lineWidth = lineWidth;
+			context.strokeStyle = '#000000';
+			context.moveTo(circle.x + circle.radius * Math.cos(startAngle + angle) - lineWidth / 2, circle.y + circle.radius * Math.sin(startAngle + angle) - lineWidth / 2);
+			context.lineTo(circle.x, circle.y);
+			context.stroke();
+			context.restore();
+		}
+
+		function drawText(i, angle) {
+			var textAngle = startAngle + angle / 2;
+			context.save();
+			context.fillStyle = '#000000';
+			context.font = '14px normal';
+			context.textAlign = 'end';
+			context.textBaseline = 'middle';
+			context.translate(circle.x + circle.radius / 1.1 * Math.cos(textAngle), circle.y + circle.radius / 1.1 * Math.sin(textAngle));
+			context.rotate(textAngle);
+			context.fillText(dinner[i], 0, 0);
+			context.restore();
+		}
+
+		function drawDinnerTurntable() {
+			context.clearRect(0, 0, canvas.width, canvas.height)
+			drawSelector();
+		}
+
+		function rotationDisk() {
+			if (isStart || dinner.length < 3) return;
+			isStart = true;
+			diskRotation();
+		}
+
+		function diskRotation(func) {
+			startAngle += angleStep;
+			drawDinnerTurntable();
+			if (typeof func == 'function') func();
+			else animationFrame = window.requestAnimationFrame(diskRotation);
+		}
+
+		function stopRotation() {
+			if (isStoping || !isStart) return;
+			isStoping = true;
+			minusTime = parseInt(Math.random() * 360 + 360);
+			minusTimeStep = degreeStep / minusTime * Math.PI / 180;
+			window.cancelAnimationFrame(animationFrame);
+			rotateionSpeedDown();
+		}
+
+		function rotateionSpeedDown() {
+			--minusTime;
+			if (minusTime <= 0) {
+				var index = Math.ceil((startAngle - Math.PI / 2) / (Math.PI * 2 / dinner.length)) % dinner.length;
+				var result = dinner[(dinner.length - index) % dinner.length];
+				alert(result);
+
+				angleStep = degreeStep * Math.PI / 180;
+				isStart = false;
+				isStoping = false;
+				window.cancelAnimationFrame(animationFrame);
+			} else {
+				angleStep -= minusTimeStep;
+				animationFrame = window.requestAnimationFrame(function() {
+					diskRotation(rotateionSpeedDown);
+				});
+			}
+		}
+
+		function createDisk() {
+			if (isStart) return;
+			var selectCount = 0,
+				menu = document.form.menu,
+				totalMenu = [],
+				index;
+			dinner = [];
+
+			for (var i = 0; i < menu.length; i++) {
+				if (menu[i].checked) {
+					totalMenu.push(menu[i].value)
+					selectCount++;
+				}
+			}
+
+			while (totalMenu.length != 0) {
+				index = parseInt(Math.random() * totalMenu.length);
+				dinner.push(totalMenu[index]);
+				totalMenu.splice(index, 1);
+			}
+
+			if (selectCount < 3) alert('最少选择3项');
+			else {
+				arrow.style.display = 'block';
+				control.style.display = 'block';
+				drawDinnerTurntable();
+			}
+		}
+	</script>
+</body>
+</html>
