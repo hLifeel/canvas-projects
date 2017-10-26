@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body style="background:#000;">
+<!--759*1320-->
+	<canvas width="750" height="1304" id="canvas" style="width:1000%;max-width:750px;"></canvas>
+	<script type="text/javascript">
+		(function() {
+		    var lastTime = 0;
+		    var vendors = ['ms', 'moz', 'webkit', 'o'];
+		    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+		        window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+		        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+		    }
+		    if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element) {
+		        var currTime = new Date().getTime();
+		        var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		        var id = window.setTimeout(function() {
+		            callback(currTime + timeToCall);
+		        }, timeToCall);
+		        lastTime = currTime + timeToCall;
+		        return id;
+		    };
+		    if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function(id) {
+		        clearTimeout(id);
+		    };
+		}());
+
+		var canvas = document.getElementById('canvas'),
+			context = canvas.getContext('2d'),
+			animationFrame,
+			polygonArray = new Array,
+			k = 0;
+
+		var polygon = function(x, y, radios, sides, fillStyle, outlineStrokStyle, lineStrokeStyle, twice) {
+			this.x = x;
+			this.y = y;
+			this.radios = radios;
+			this.sides = sides;
+			this.fillStyle = fillStyle;
+			this.outlineStrokStyle = outlineStrokStyle;
+			this.lineStrokeStyle = lineStrokeStyle;
+			this.twice = twice;
+
+			this.startAngle = Math.PI / 180 * -50;
+			this.singleAngle = Math.PI * 2 / sides;
+			if (twice) {
+				this.offsetX = twice.offsetDistance * Math.cos(-Math.PI / 2 + Math.PI / 180 * twice.offsetDegree);
+				this.offsetY = twice.offsetDistance * Math.sin(-Math.PI / 2 + Math.PI / 180 * twice.offsetDegree);
+				this.centerPoint = { x: x + this.offsetX / 2, y: y + this.offsetY / 2 };
+			} else {
+				this.centerPoint = { x: x, y: y };
+			}
+		}
+
+		polygon.prototype = {
+			createPath: function(context, second) {
+				var x = this.x + (second ? this.offsetX : 0),
+					y = this.y + (second ? this.offsetY : 0);
+				context.beginPath();
+				context.moveTo(x + this.radios * Math.cos(this.startAngle), y + this.radios * Math.sin(this.startAngle));
+				for (var i = 1; i <= this.sides; i++) {
+					context.lineTo(x + this.radios * Math.cos(this.startAngle + this.singleAngle * i), y + this.radios * Math.sin(this.startAngle + this.singleAngle * i));
+				}
+				context.closePath();
+			},
+			fill: function(context) {
+				context.save();
+				this.createPath(context, false);
+				context.fillStyle = this.fillStyle;
+				context.fill();
+				if (this.twice) {
+					this.createPath(context, true);
+					context.fillStyle = this.twice.fillStyle;
+					context.fill();
+				}
+				context.restore();
+
+				context.save();
+				context.lineWidth = 2;
+				context.beginPath();
+				context.arc(this.x, this.y, this.radios + 10, 0, Math.PI * 2, false);
+				context.strokeStyle = this.outlineStrokStyle;
+				context.stroke();
+				context.closePath();
+				context.restore();
+			},
+			lineToPolygon: function(anotherPolygon, k, time) {
+				if (!(anotherPolygon && anotherPolygon instanceof polygon)) return;
+				context.save();
+				context.beginPath();
+				context.lineWidth = 4;
+				context.moveTo(this.centerPoint.x, this.centerPoint.y);
+				if (k >= time) context.lineTo(anotherPolygon.x, anotherPolygon.y);
+				else context.lineTo(this.centerPoint.x + (k * (anotherPolygon.x - this.centerPoint.x) / time), this.centerPoint.y + (k * (anotherPolygon.y - this.centerPoint.y) / time));
+				context.strokeStyle = this.lineStrokeStyle;
+				context.stroke();
+				context.closePath();
+				if (k >= time) anotherPolygon.fill(context);
+				context.restore();
+				this.fill(context);
+			}
+		}
+
+		function step1() {
+			polygonArray.push(new polygon(205, 748, 40, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', { offsetDegree: 50, offsetDistance: 5, fillStyle: '#4b9bdf' }));
+			polygonArray.push(new polygon(180, 962, 25, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(60, 1026, 25, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(169, 1103, 35, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', { offsetDegree: 40, offsetDistance: 5, fillStyle: '#4b9bdf' }));
+			polygonArray.push(new polygon(324, 336, 35, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', { offsetDegree: 40, offsetDistance: 5, fillStyle: '#4b9bdf' }));
+			polygonArray.push(new polygon(422, 510, 25, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(500, 767, 25, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(537, 596, 17, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(558, 440, 32, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+			polygonArray.push(new polygon(674, 868, 25, 6, '#f5f6f7', '#f4f5f5', '#f5f5f7', null));
+		}
+
+		function linkPolygon1() {
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			polygonArray[0].lineToPolygon(polygonArray[1], ++k, 40);
+			polygonArray[0].lineToPolygon(polygonArray[2], k, 40);
+			polygonArray[0].lineToPolygon(polygonArray[4], k, 40);
+			polygonArray[0].lineToPolygon(polygonArray[5], k, 40);
+			polygonArray[0].lineToPolygon(polygonArray[6], k, 40);
+			polygonArray[0].lineToPolygon(polygonArray[7], k, 40);
+			if (k >= 40) {
+				polygonArray[1].lineToPolygon(polygonArray[2], k - 40, 40);
+				polygonArray[1].lineToPolygon(polygonArray[3], k - 40, 40);
+				polygonArray[2].lineToPolygon(polygonArray[3], k - 40, 40);
+				polygonArray[4].lineToPolygon(polygonArray[5], k - 40, 40);
+				polygonArray[5].lineToPolygon(polygonArray[7], k - 40, 40);
+				polygonArray[5].lineToPolygon(polygonArray[8], k - 40, 40);
+				polygonArray[6].lineToPolygon(polygonArray[7], k - 40, 40);
+				polygonArray[7].lineToPolygon(polygonArray[8], k - 40, 40);
+			}
+			if (k >= 80) {
+				polygonArray[6].lineToPolygon(polygonArray[9], k - 80, 40);
+				polygonArray[7].lineToPolygon(polygonArray[9], k - 80, 40);
+			}
+			if (k >= 120) window.cancelAnimationFrame(requestAnimationFrame);
+			else window.requestAnimationFrame(linkPolygon1);
+		}
+
+		step1();
+		animationFrame = window.requestAnimationFrame(linkPolygon1);
+	</script>
+</body>
+</html>
