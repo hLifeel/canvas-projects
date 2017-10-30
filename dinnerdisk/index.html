@@ -23,6 +23,25 @@
 		<form name="form">
 			<div style="width:100%;">
 				<script type="text/javascript">
+					var menu = [
+							'老鸭粉丝汤',
+							'外卖',
+							'胖子面',
+							'锅品面吧',
+							'冒菜三国',
+							'立方铁',
+							'萨莉亚',
+							'小杨生煎',
+							'麻辣烫',
+							'新地',
+							'德笼馆',
+							'面特筋',
+							'好烧',
+							'食之秘',
+							'麦当劳',
+							'大娘水饺'
+						];
+					
 					var input = [];
 					for (var i = 0; i < menu.length; i++) {
 						input.push('<label style="margin:1% 2% 1% 0;white-space:nowrap;float:left;"><input type="checkbox" name="menu" value="' + menu[i] + '" />' + menu[i] + '</label>');
@@ -37,24 +56,6 @@
 		</form>
 	</div>
 	<script type="text/javascript">
-		var menu = [
-			'老鸭粉丝汤',
-			'外卖',
-			'胖子面',
-			'锅品面吧',
-			'冒菜三国',
-			'立方铁',
-			'萨莉亚',
-			'小杨生煎',
-			'麻辣烫',
-			'新地',
-			'德笼馆',
-			'面特筋',
-			'好烧',
-			'食之秘',
-			'麦当劳',
-			'大娘水饺'
-		];
 		
 		(function() {
 		    var lastTime = 0;
