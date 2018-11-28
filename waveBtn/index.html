@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<canvas id="waveBtn" width="500" height="500"></canvas>
+
+<script type="text/javascript">
+    (function() {
+        var lastTime = 0;
+        var vendors = ['ms', 'moz', 'webkit', 'o'];
+        for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+            window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+            window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+        }
+        if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() {
+                callback(currTime + timeToCall);
+            }, timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+        if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function(id) {
+            window.clearTimeout(id);
+        };
+    }());
+
+    function canvasSupport() {
+        return !!document.createElement('canvas').getContext;
+    }
+
+    function canvasApp() {
+        if (!canvasSupport()) return;
+
+        var waveBtn = document.getElementById('waveBtn'),
+            ctx = waveBtn.getContext('2d'),
+            animationFrame;
+
+        var btnInfo = [
+            {x:100,y:100,width:10,height:10,scale:3,hex: "#ff0000", r: 256, g: 0, b: 0},
+            {x:200,y:200,width:20,height:20,scale:2,hex: "#00ff00", r: 0, g: 256, b: 0},
+            {x:300,y:300,width:30,height:30,scale:1,hex: "#0000ff", r: 0, g: 0, b: 256}
+        ];
+        var Btn = function (x, y, width, height,scale,fillStyle,hasPlus) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.scale = scale;
+            this.fillStyle = fillStyle;
+            this.hasPlus = hasPlus;
+        };
+        Btn.prototype = {
+            createBtn: function (context) {
+                context.beginPath();
+                context.moveTo(this.x, this.y - this.height / 2);
+                context.lineTo(this.x + this.width / 2, this.y);
+                context.lineTo(this.x, this.y + this.height / 2);
+                context.lineTo(this.x - this.width / 2, this.y);
+                context.closePath();
+            },
+            createPlus: function (context) {
+                context.beginPath();
+                context.moveTo(this.x, this.y - this.height / 2 * 0.45);
+                context.lineTo(this.x, this.y + this.height / 2 * 0.45);
+                context.moveTo(this.x - this.width / 2 * 0.45, this.y);
+                context.lineTo(this.x + this.width / 2 * 0.45, this.y);
+                context.closePath();
+            },
+            fill(context){
+                context.save();
+                this.createBtn(ctx);
+                context.fillStyle=this.fillStyle;
+                context.fill();
+                if(this.hasPlus){
+                    this.createPlus(ctx);
+                    context.lineWidth=2;
+                    context.strokeStyle='#fff';
+                    context.stroke();
+                }
+                context.restore();
+            }
+        };
+
+        (function () {
+            var btnArray=[],
+                waveBtnArray = [];
+
+            for (var i = 0; i < btnInfo.length; i++) {
+                var individual=btnInfo[i],
+                    btn=new Btn(individual.x,individual.y,individual.width,individual.height,individual.scale,individual.hex,true);
+                btnArray.push(btn);
+            }
+            btnArray.forEach(function (item,index) {
+                waveBtnArray[index]=[
+                    {obj: new Btn(item.x, item.y, item.width, item.height, null, false),t: 0.66},
+                    {obj: new Btn(item.x, item.y, item.width, item.height, null, false),t: 0.33},
+                    {obj: new Btn(item.x, item.y, item.width, item.height, null, false),t: 0}
+                ];
+                pointAnimate();
+            });
+
+            function pointAnimate() {
+                ctx.clearRect(0, 0, waveBtn.width, waveBtn.height);
+                waveBtnArray.forEach(function (item,index) {
+                    waveBtnArray[index].forEach(function (point) {
+                        var individual=btnInfo[index];
+                        point.t+=0.006;
+                        point.obj.width=individual.width+individual.width*individual.scale*point.t;
+                        point.obj.height=individual.height+individual.height*individual.scale*point.t;
+                        point.obj.fillStyle='rgba('+individual.r+','+individual.g+','+individual.b+','+(1-point.t)+')';
+                        point.obj.fill(ctx);
+                        if(point.t>=1) point.t=0;
+                    })
+                });
+                btnArray.forEach(function (item) {
+                    item.fill(ctx);
+                });
+                animationFrame = window.requestAnimationFrame(function() {
+                    pointAnimate();
+                });
+            }
+        })();
+    }
+
+    window.onload = function () {
+        canvasApp();
+    };
+</script>
+</body>
+</html>
